@@ -3,28 +3,64 @@ import React from "react";
 export default class Clock extends React.Component{
     constructor(props){
         super(props);
-        this.state = {hours: 0, minutes: 0, seconds: 0};
-        this.updateTime = this.updateTime.bind(this);
+        this.state = {hours: 0, minutes: 0, seconds: 0,
+            alarm: {hours: 0, minutes: 0},
+            alerted: false
+        };
+        this.handleTick = this.handleTick.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
     }
     render(){
-        return <div>
+        return <div className="clock">
                 {this.formatTime(this.state)}
+                <label hrmlFor="alarm-input">
+                Alarm
+                    <input id="alarm-input" type='time' onChange={this.handleInputChange}/>
+                </label>
             </div>
     }
     componentDidMount(){
         this.updateTime();
-        this.intervalHandle = setInterval(this.updateTime, 1000);
+        this.intervalHandle = setInterval(this.handleTick, 1000);
     }
     componentWillUnmount(){
         clearInterval(this.intervalHandle);
     }
+    checkAlarm(){
+        if(this.state.hours === this.state.alarm.hours &&
+            this.state.minutes === this.state.alarm.minutes &&
+            !this.state.alerted){
+                this.triggerAlarm();
+            }
+    }
+    triggerAlarm(){
+        alert("its time");
+        this.setState(Object.assign({}, {alerted: true}));
+    }
+    handleInputChange(e){
+        const values = e.target.value.split(":");
+        const  hours = parseInt(values[0]);
+        const minutes = parseInt(values[1]);
+        this.setState(
+            Object.assign({}, this.state, {alarm:{hours, minutes}, alerted: false})
+        )
+    }
     updateTime(){
         const now = new Date();
-        this.setState({
+        if(now.getHours() != this.state.hours){
+            this.setState(Object.assign({}, {alerted: false}));
+        }
+        this.setState(
+            Object.assign({},this.state,
+            {
             hours: now.getHours(),
             minutes: now.getMinutes(),
-            seconds: now.getSeconds()
-        });
+            seconds: now.getSeconds()}
+        ));
+    }
+    handleTick(){
+        this.updateTime();
+        this.checkAlarm();
     }
     formatTime({hours, minutes, seconds}){
         const ampm = hours >= 12 && hours ? "PM" : "AM";

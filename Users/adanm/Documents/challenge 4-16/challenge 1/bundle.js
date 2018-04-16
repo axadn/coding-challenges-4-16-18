@@ -10875,8 +10875,12 @@ var Clock = function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (Clock.__proto__ || Object.getPrototypeOf(Clock)).call(this, props));
 
-        _this.state = { hours: 0, minutes: 0, seconds: 0 };
-        _this.updateTime = _this.updateTime.bind(_this);
+        _this.state = { hours: 0, minutes: 0, seconds: 0,
+            alarm: { hours: 0, minutes: 0 },
+            alerted: false
+        };
+        _this.handleTick = _this.handleTick.bind(_this);
+        _this.handleInputChange = _this.handleInputChange.bind(_this);
         return _this;
     }
 
@@ -10885,15 +10889,21 @@ var Clock = function (_React$Component) {
         value: function render() {
             return _react2.default.createElement(
                 "div",
-                null,
-                this.formatTime(this.state)
+                { className: "clock" },
+                this.formatTime(this.state),
+                _react2.default.createElement(
+                    "label",
+                    { hrmlFor: "alarm-input" },
+                    "Alarm",
+                    _react2.default.createElement("input", { id: "alarm-input", type: "time", onChange: this.handleInputChange })
+                )
             );
         }
     }, {
         key: "componentDidMount",
         value: function componentDidMount() {
             this.updateTime();
-            this.intervalHandle = setInterval(this.updateTime, 1000);
+            this.intervalHandle = setInterval(this.handleTick, 1000);
         }
     }, {
         key: "componentWillUnmount",
@@ -10901,14 +10911,43 @@ var Clock = function (_React$Component) {
             clearInterval(this.intervalHandle);
         }
     }, {
+        key: "checkAlarm",
+        value: function checkAlarm() {
+            if (this.state.hours === this.state.alarm.hours && this.state.minutes === this.state.alarm.minutes && !this.state.alerted) {
+                this.triggerAlarm();
+            }
+        }
+    }, {
+        key: "triggerAlarm",
+        value: function triggerAlarm() {
+            alert("its time");
+            this.setState(Object.assign({}, { alerted: true }));
+        }
+    }, {
+        key: "handleInputChange",
+        value: function handleInputChange(e) {
+            var values = e.target.value.split(":");
+            var hours = parseInt(values[0]);
+            var minutes = parseInt(values[1]);
+            this.setState(Object.assign({}, this.state, { alarm: { hours: hours, minutes: minutes }, alerted: false }));
+        }
+    }, {
         key: "updateTime",
         value: function updateTime() {
             var now = new Date();
-            this.setState({
+            if (now.getHours() != this.state.hours) {
+                this.setState(Object.assign({}, { alerted: false }));
+            }
+            this.setState(Object.assign({}, this.state, {
                 hours: now.getHours(),
                 minutes: now.getMinutes(),
-                seconds: now.getSeconds()
-            });
+                seconds: now.getSeconds() }));
+        }
+    }, {
+        key: "handleTick",
+        value: function handleTick() {
+            this.updateTime();
+            this.checkAlarm();
         }
     }, {
         key: "formatTime",
